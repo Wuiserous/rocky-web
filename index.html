@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Rocky Desktop Pet</title>
+    <meta
+      name="description"
+      content="Rocky is a voice-first AI desktop pet that lives on your screen, remembers your routines, schedules tasks, sees your screen on request, and helps without barging in."
+    >
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body data-pet="rocky">
+    <header class="site-nav">
+      <a class="brand" href="#top" aria-label="Rocky home">
+        <img id="brand-pet" src="../pets/golem_male/idle.gif" alt="">
+        <span id="brand-name">Rocky</span>
+      </a>
+      <nav aria-label="Main navigation">
+        <a href="#pets">Pets</a>
+        <a href="#life">Daily rhythm</a>
+        <a href="#capabilities">Capabilities</a>
+        <a href="#privacy">Privacy</a>
+      </nav>
+      <a class="nav-cta" href="#download">Download</a>
+    </header>
+
+    <main id="top">
+      <section class="hero" aria-labelledby="hero-title">
+        <img id="hero-bg" class="hero-bg hero-bg-banner" src="../assets/rocky-banner.png" alt="">
+        <div class="hero-shade"></div>
+        <div class="hero-content">
+          <p class="eyebrow">Voice-first AI companion for your desktop</p>
+          <h1 id="hero-title">Meet Rocky, the AI pet that lives on your desktop.</h1>
+          <p class="hero-copy">
+            It talks, remembers, schedules, nudges rarely, sees your screen on request, and slowly becomes part of your routine.
+          </p>
+          <div class="hero-pet-picker" aria-label="Choose the landing page pet">
+            <button class="hero-pet-option active" type="button" data-pet="rocky">
+              <img src="../pets/golem_male/idle.gif" alt="">
+              <span>Rocky</span>
+            </button>
+            <button class="hero-pet-option" type="button" data-pet="rhea">
+              <img src="../pets/golem_female/idle.gif" alt="">
+              <span>Rhea</span>
+            </button>
+            <button class="hero-pet-option" type="button" data-pet="pip">
+              <img src="../pets/penguine/idle.gif" alt="">
+              <span>Pip</span>
+            </button>
+          </div>
+          <div class="hero-actions">
+            <a class="button primary" href="#download">Download for Windows</a>
+            <a class="button glass" href="#pets">Meet the pets</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="daily-loop" aria-label="How Rocky becomes useful every day">
+        <div class="loop-copy">
+          <div class="section-kicker">Not a novelty pet</div>
+          <h2 id="loop-title">Rocky turns tiny moments into a daily rhythm.</h2>
+          <p id="loop-copy">The magic is not that a pet walks around. It is that the pet remembers the thread, respects your focus, and shows up at the right time.</p>
+        </div>
+        <div class="loop-orbit" aria-hidden="true">
+          <div class="orbit-ring"></div>
+          <img id="loop-pet" src="../pets/golem_male/happy.gif" alt="">
+          <span class="loop-dot dot-one"></span>
+          <span class="loop-dot dot-two"></span>
+          <span class="loop-dot dot-three"></span>
+        </div>
+        <div class="loop-moments">
+          <article>
+            <span>Morning</span>
+            <strong>Digest ready</strong>
+            <p>Weather, news interests, calendar-like reminders, and current projects.</p>
+          </article>
+          <article>
+            <span>Focus</span>
+            <strong>Rare useful nudge</strong>
+            <p>Only when something looks genuinely stuck, urgent, or worth remembering.</p>
+          </article>
+          <article>
+            <span>Evening</span>
+            <strong>Wrap-up</strong>
+            <p>Loose tasks, unfinished work, and tomorrow’s first good step.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="pet-showcase" id="pets" aria-labelledby="pets-title">
+        <div class="section-kicker">Pets available</div>
+        <div class="section-heading">
+          <h2 id="pets-title">Choose the companion that fits your mood.</h2>
+          <p>Each pet has a voice, animation set, and personality. Customize the name and behavior later in the Control Center.</p>
+        </div>
+
+        <div class="pet-stage" aria-live="polite">
+          <div class="stage-visual">
+            <img id="featured-pet" src="../pets/golem_male/idle.gif" alt="Rocky idle animation">
+          </div>
+          <div class="stage-copy">
+            <p class="stage-label">Selected companion</p>
+            <h3 id="featured-name">Rocky</h3>
+            <p id="featured-vibe">Warm, loyal, curious, and gently playful.</p>
+            <div class="mini-stats">
+              <span id="featured-species">Male rock golem</span>
+              <span id="featured-voice">Voice: Puck</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="pet-grid" role="list">
+          <button class="pet-card active" type="button" data-pet="rocky" role="listitem">
+            <img src="../pets/golem_male/happy.gif" alt="Rocky happy animation">
+            <span>Rocky</span>
+            <small>Loyal rock golem</small>
+          </button>
+          <button class="pet-card" type="button" data-pet="rhea" role="listitem">
+            <img src="../pets/golem_female/happy.gif" alt="Rhea happy animation">
+            <span>Rhea</span>
+            <small>Bright crystal golem</small>
+          </button>
+          <button class="pet-card" type="button" data-pet="pip" role="listitem">
+            <img src="../pets/penguine/happy.gif" alt="Pip happy animation">
+            <span>Pip</span>
+            <small>Cheerful penguin pet</small>
+          </button>
+        </div>
+      </section>
+
+      <section class="screen-story" id="life" aria-labelledby="life-title">
+        <div class="desktop-scene">
+          <div class="window-card active-window">
+            <div class="window-dots"><i></i><i></i><i></i></div>
+            <div class="code-lines">
+              <span></span><span></span><span></span><span></span><span></span>
+            </div>
+          </div>
+          <img id="scene-pet" class="scene-pet" src="../pets/golem_male/thinking.gif" alt="Rocky thinking beside a desktop window">
+          <div class="bubble-card">You were debugging this yesterday. Want to continue?</div>
+        </div>
+        <div class="story-copy">
+          <div class="section-kicker">Beyond novelty</div>
+          <h2 id="life-title">A pet that keeps the thread.</h2>
+          <p>The pet remembers what matters and turns it into tiny, useful moments across the day.</p>
+          <div class="routine-grid">
+            <div><strong>Digest</strong><span>Your morning brief, tuned to your topics.</span></div>
+            <div><strong>Continue</strong><span>Unfinished work returns without the whole backstory.</span></div>
+            <div><strong>Nudge</strong><span>Rare help, cooldowns, and user controls.</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="command-playground" aria-labelledby="play-title">
+        <div class="section-heading">
+          <div>
+            <div class="section-kicker">Try the feeling</div>
+            <h2 id="play-title">Say one thing. Your pet turns it into action.</h2>
+          </div>
+          <p>These are the small moments that make the pet feel alive: it understands intent, keeps the context, and gives the user control.</p>
+        </div>
+        <div class="playground-shell">
+          <div class="command-list" aria-label="Example commands">
+            <button class="command-chip active" type="button" data-demo="digest">Give me my morning digest</button>
+            <button class="command-chip" type="button" data-demo="reminder">Remind me every Friday</button>
+            <button class="command-chip" type="button" data-demo="continue">Continue yesterday’s work</button>
+            <button class="command-chip" type="button" data-demo="screen">What am I stuck on?</button>
+          </div>
+          <div class="play-response">
+            <img id="play-pet" src="../pets/golem_male/talking.gif" alt="">
+            <div>
+              <span id="play-label">Morning digest</span>
+              <h3 id="play-title-card">A personalized start</h3>
+              <p id="play-copy">Rocky gathers your reminders, preferred news, weather, unfinished work, and the first useful next step.</p>
+              <div class="play-tags" id="play-tags">
+                <span>Weather</span>
+                <span>Projects</span>
+                <span>Reminders</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="capabilities" id="capabilities" aria-labelledby="capabilities-title">
+        <div class="section-kicker">What Rocky can do</div>
+        <div class="section-heading">
+          <h2 id="capabilities-title">Small pet. Serious assistant instincts.</h2>
+          <p>Rocky handles everyday computer life, then hands heavier work to specialist tools when needed.</p>
+        </div>
+        <div class="capability-grid">
+          <article>
+            <img class="capability-emote" data-emote="talking" src="../pets/golem_male/talking.gif" alt="">
+            <h3>Realtime voice</h3>
+            <p>Talk naturally. Rocky replies with the selected pet's personality and voice.</p>
+          </article>
+          <article>
+            <img class="capability-emote" data-emote="thinking" src="../pets/golem_male/thinking.gif" alt="">
+            <h3>Fresh answers</h3>
+            <p>Weather, latest news, local context, app/file help, and screen questions.</p>
+          </article>
+          <article>
+            <img class="capability-emote" data-emote="happy" src="../pets/golem_male/happy.gif" alt="">
+            <h3>Useful memory</h3>
+            <p>Projects, people, work hours, interests, dislikes, and reminder style.</p>
+          </article>
+          <article>
+            <img class="capability-emote" data-emote="sleeping" src="../pets/golem_male/sleeping.gif" alt="">
+            <h3>Human rhythm</h3>
+            <p>Sleeps after inactivity, wakes with intent, and follows a daily schedule.</p>
+          </article>
+          <article>
+            <img class="capability-emote" data-emote="dance" src="../pets/golem_male/dance.gif" alt="">
+            <h3>Recurring tasks</h3>
+            <p>One-time reminders, habits, weekly checks, and visible task controls.</p>
+          </article>
+          <article>
+            <img class="capability-emote" data-emote="thinking" src="../pets/golem_male/thinking.gif" alt="">
+            <h3>Project handoff</h3>
+            <p>Rocky can ask Codex to inspect or build projects while staying the friendly layer.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="privacy-band" id="privacy">
+        <div>
+          <div class="section-kicker">Trust by design</div>
+          <h2>Screen vision is explicit. Nudges are controlled.</h2>
+        </div>
+        <p>
+          Screen awareness is user-controlled, visible, and configurable. Memory, reminders, routines, and recent activity stay visible in the Control Center.
+        </p>
+      </section>
+
+      <section class="download" id="download" aria-labelledby="download-title">
+        <div class="download-card">
+          <img id="download-pet" src="../pets/golem_male/happy.gif" alt="Rocky waving happily">
+          <div>
+            <p class="section-kicker">Windows desktop app</p>
+            <h2 id="download-title">Bring Rocky onto your screen.</h2>
+            <p>Install the pet, pick your companion, and let it grow into your routine.</p>
+          </div>
+          <div class="download-actions">
+            <a class="button primary" href="https://github.com/Wuiserous/rocky-pet-updates/releases/download/v2.0/RockySetup.exe">
+              Download for Windows
+              <small>v2.0</small>
+            </a>
+            <button class="button disabled" type="button" disabled>
+              Mac app
+              <small>Coming soon</small>
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <span>Rocky Desktop Pet</span>
+      <span>A voice-first AI companion for your screen.</span>
+    </footer>
+
+    <script src="script.js"></script>
+  </body>
+</html>

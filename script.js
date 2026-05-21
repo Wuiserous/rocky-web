@@ -9,18 +9,18 @@ const pets = {
     greeting: "Hi, I am Rocky. I can live on your desktop and help when you need me.",
     loopTitle: "Rocky turns tiny moments into a daily rhythm.",
     loopCopy: "The magic is not that a pet walks around. It is that Rocky remembers the thread, respects your focus, and shows up at the right time.",
-    heroBg: "../assets/rocky-banner.png",
+    heroBg: "assets/rocky-banner.png",
     heroBgMode: "banner",
-    idle: "../pets/golem_male/idle.gif",
-    happy: "../pets/golem_male/happy.gif",
-    thinking: "../pets/golem_male/thinking.gif",
-    talking: "../pets/golem_male/talking.gif",
-    sleeping: "../pets/golem_male/sleeping.gif",
-    dance: "../pets/golem_male/dance.gif",
-    dragUp: "../pets/golem_male/drag_up.gif",
-    dragDown: "../pets/golem_male/drag_down.gif",
-    walkRight: "../pets/golem_male/walking_right.gif",
-    walkLeft: "../pets/golem_male/walking_left.gif",
+    idle: "pets/golem_male/idle.gif",
+    happy: "pets/golem_male/happy.gif",
+    thinking: "pets/golem_male/thinking.gif",
+    talking: "pets/golem_male/talking.gif",
+    sleeping: "pets/golem_male/sleeping.gif",
+    dance: "pets/golem_male/dance.gif",
+    dragUp: "pets/golem_male/drag_up.gif",
+    dragDown: "pets/golem_male/drag_down.gif",
+    walkRight: "pets/golem_male/walking_right.gif",
+    walkLeft: "pets/golem_male/walking_left.gif",
     alt: "Rocky idle animation",
   },
   rhea: {
@@ -33,18 +33,18 @@ const pets = {
     greeting: "Hi, I am Rhea. I will keep things bright and gentle.",
     loopTitle: "Rhea turns tiny moments into a calmer day.",
     loopCopy: "Rhea keeps the helpful bits close: reminders, digest, follow-ups, and gentle nudges that respect your focus.",
-    heroBg: "../assets/rhea-banner.png",
+    heroBg: "assets/rhea-banner.png",
     heroBgMode: "banner",
-    idle: "../pets/golem_female/idle.gif",
-    happy: "../pets/golem_female/happy.gif",
-    thinking: "../pets/golem_female/thinking.gif",
-    talking: "../pets/golem_female/talking.gif",
-    sleeping: "../pets/golem_female/sleep.gif",
-    dance: "../pets/golem_female/dance.gif",
-    dragUp: "../pets/golem_female/drag_up.gif",
-    dragDown: "../pets/golem_female/drag_down.gif",
-    walkRight: "../pets/golem_female/walk_right.gif",
-    walkLeft: "../pets/golem_female/walk_left.gif",
+    idle: "pets/golem_female/idle.gif",
+    happy: "pets/golem_female/happy.gif",
+    thinking: "pets/golem_female/thinking.gif",
+    talking: "pets/golem_female/talking.gif",
+    sleeping: "pets/golem_female/sleep.gif",
+    dance: "pets/golem_female/dance.gif",
+    dragUp: "pets/golem_female/drag_up.gif",
+    dragDown: "pets/golem_female/drag_down.gif",
+    walkRight: "pets/golem_female/walk_right.gif",
+    walkLeft: "pets/golem_female/walk_left.gif",
     alt: "Rhea idle animation",
   },
   pip: {
@@ -57,18 +57,18 @@ const pets = {
     greeting: "Hi, I am Pip. I will waddle nearby while you look around.",
     loopTitle: "Pip makes useful work feel lighter.",
     loopCopy: "Pip keeps the small stuff moving: recurring reminders, next steps, screen-aware help, and tiny wins across the day.",
-    heroBg: "../assets/pip-banner.png",
+    heroBg: "assets/pip-banner.png",
     heroBgMode: "banner",
-    idle: "../pets/penguine/idle.gif",
-    happy: "../pets/penguine/happy.gif",
-    thinking: "../pets/penguine/thinking.gif",
-    talking: "../pets/penguine/talking.gif",
-    sleeping: "../pets/penguine/sleep.gif",
-    dance: "../pets/penguine/dance.gif",
-    dragUp: "../pets/penguine/drag_up.gif",
-    dragDown: "../pets/penguine/drag_down.gif",
-    walkRight: "../pets/penguine/walk_right.gif",
-    walkLeft: "../pets/penguine/walk_left.gif",
+    idle: "pets/penguine/idle.gif",
+    happy: "pets/penguine/happy.gif",
+    thinking: "pets/penguine/thinking.gif",
+    talking: "pets/penguine/talking.gif",
+    sleeping: "pets/penguine/sleep.gif",
+    dance: "pets/penguine/dance.gif",
+    dragUp: "pets/penguine/drag_up.gif",
+    dragDown: "pets/penguine/drag_down.gif",
+    walkRight: "pets/penguine/walk_right.gif",
+    walkLeft: "pets/penguine/walk_left.gif",
     alt: "Pip idle animation",
   },
 };
@@ -98,10 +98,13 @@ const playTags = document.querySelector("#play-tags");
 const capabilityEmotes = document.querySelectorAll(".capability-emote");
 const petButtons = document.querySelectorAll("[data-pet]");
 const commandButtons = document.querySelectorAll(".command-chip");
+const navLinks = document.querySelectorAll(".site-nav nav a");
 const nav = document.querySelector(".site-nav");
 const hero = document.querySelector(".hero");
 const windowsDownloadLink = document.querySelector("#windows-download-link");
 const windowsDownloadVersion = document.querySelector("#windows-download-version");
+const releaseNote = document.querySelector("#release-note");
+const releaseList = document.querySelector("#release-list");
 
 let activePetId = "rocky";
 
@@ -219,6 +222,37 @@ window.addEventListener("scroll", () => {
   }
 });
 
+function primeNavState() {
+  if (!navLinks.length || !("IntersectionObserver" in window)) return;
+
+  const sections = [...navLinks]
+    .map((link) => document.querySelector(link.getAttribute("href")))
+    .filter(Boolean);
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      const visible = entries
+        .filter((entry) => entry.isIntersecting)
+        .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+
+      if (!visible) return;
+
+      navLinks.forEach((link) => {
+        const isActive = link.getAttribute("href") === `#${visible.target.id}`;
+        link.classList.toggle("active", isActive);
+        if (isActive) {
+          link.setAttribute("aria-current", "true");
+        } else {
+          link.removeAttribute("aria-current");
+        }
+      });
+    },
+    { rootMargin: "-28% 0px -58% 0px", threshold: [0.08, 0.18, 0.32] }
+  );
+
+  sections.forEach((section) => observer.observe(section));
+}
+
 function primeScrollMotion() {
   const animatedElements = [
     ".loop-copy",
@@ -305,6 +339,20 @@ async function syncWindowsDownload() {
     if (windowsDownloadVersion && release.version) {
       windowsDownloadVersion.textContent = `v${String(release.version).replace(/^v/i, "")}`;
     }
+
+    if (releaseNote && release.key_note) {
+      releaseNote.textContent = release.key_note;
+    }
+
+    if (releaseList && Array.isArray(release.whats_new)) {
+      releaseList.replaceChildren(
+        ...release.whats_new.slice(0, 4).map((item) => {
+          const listItem = document.createElement("li");
+          listItem.textContent = item;
+          return listItem;
+        })
+      );
+    }
   } catch (error) {
     console.warn("Using fallback Windows download link.", error);
   }
@@ -313,4 +361,5 @@ async function syncWindowsDownload() {
 const requestedPet = new URLSearchParams(window.location.search).get("pet");
 setPet(pets[requestedPet] ? requestedPet : "rocky", true);
 primeScrollMotion();
+primeNavState();
 syncWindowsDownload();

@@ -100,6 +100,8 @@ const petButtons = document.querySelectorAll("[data-pet]");
 const commandButtons = document.querySelectorAll(".command-chip");
 const nav = document.querySelector(".site-nav");
 const hero = document.querySelector(".hero");
+const windowsDownloadLink = document.querySelector("#windows-download-link");
+const windowsDownloadVersion = document.querySelector("#windows-download-version");
 
 let activePetId = "rocky";
 
@@ -275,6 +277,40 @@ function primeScrollMotion() {
   window.addEventListener("scroll", revealVisibleTargets, { passive: true });
 }
 
+function isValidHttpUrl(value) {
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" || url.protocol === "http:";
+  } catch {
+    return false;
+  }
+}
+
+async function syncWindowsDownload() {
+  if (!windowsDownloadLink) return;
+
+  const versionUrl = windowsDownloadLink.dataset.versionUrl;
+  if (!versionUrl) return;
+
+  try {
+    const response = await fetch(`${versionUrl}?t=${Date.now()}`, { cache: "no-store" });
+    if (!response.ok) throw new Error(`Version metadata request failed: ${response.status}`);
+
+    const release = await response.json();
+    if (!release || !isValidHttpUrl(release.download_url)) return;
+
+    windowsDownloadLink.href = release.download_url;
+    windowsDownloadLink.dataset.releaseVersion = release.version || "";
+
+    if (windowsDownloadVersion && release.version) {
+      windowsDownloadVersion.textContent = `v${String(release.version).replace(/^v/i, "")}`;
+    }
+  } catch (error) {
+    console.warn("Using fallback Windows download link.", error);
+  }
+}
+
 const requestedPet = new URLSearchParams(window.location.search).get("pet");
 setPet(pets[requestedPet] ? requestedPet : "rocky", true);
 primeScrollMotion();
+syncWindowsDownload();

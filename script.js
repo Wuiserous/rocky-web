@@ -144,7 +144,6 @@ const authPet = document.querySelector("#auth-pet");
 const authMessage = document.querySelector("#auth-message");
 const authHelper = document.querySelector("#auth-helper");
 const googleSigninButton = document.querySelector("#google-signin-button");
-const authDownloadButton = document.querySelector("#auth-download-button");
 const authCloseButtons = document.querySelectorAll("[data-auth-close]");
 const downloadAuthStatus = document.querySelector("#download-auth-status");
 
@@ -268,13 +267,6 @@ if (windowsDownloadLink) {
 
 if (googleSigninButton) {
   googleSigninButton.addEventListener("click", signInWithGoogle);
-}
-
-if (authDownloadButton) {
-  authDownloadButton.addEventListener("click", () => {
-    pendingDownloadAfterSignIn = false;
-    startWindowsDownload();
-  });
 }
 
 authCloseButtons.forEach((button) => {
@@ -429,6 +421,10 @@ function openAuthModal(message) {
     authMessage.textContent = message;
   }
 
+  if (!signedInUser && authHelper) {
+    authHelper.textContent = "The download starts automatically after Google sign-in.";
+  }
+
   authModal.hidden = false;
   document.body.classList.add("auth-open");
   requestAnimationFrame(() => googleSigninButton?.focus());
@@ -452,17 +448,13 @@ function setSignedInUser(user) {
   signedInUser = user || null;
   const displayName = signedInUser?.displayName || signedInUser?.email || "Google account";
 
-  if (authDownloadButton) {
-    authDownloadButton.hidden = !signedInUser;
-  }
-
   if (signedInUser) {
     updateAuthStatus(`Signed in as ${displayName}. Download is ready.`);
     if (authMessage) {
       authMessage.textContent = `You are signed in as ${displayName}. Rocky is ready to download.`;
     }
     if (authHelper) {
-      authHelper.textContent = "You can start the installer download now.";
+      authHelper.textContent = "Starting the installer download now.";
     }
     if (windowsDownloadLabel) {
       windowsDownloadLabel.textContent = "Download for Windows";

@@ -1251,15 +1251,15 @@ footer {
 }
 
 .auth-modal__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+  display: grid;
   margin-top: 24px;
+  width: min(260px, 100%);
 }
 
 .auth-modal__actions .button {
   cursor: pointer;
-  min-width: 190px;
+  width: 100%;
+  min-width: 0;
   font: inherit;
 }
 
@@ -1586,7 +1586,6 @@ footer {
     padding: 22px;
   }
 
-  .auth-modal__actions,
   .auth-modal__actions .button {
     width: 100%;
   }

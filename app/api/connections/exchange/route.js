@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getRedis, hasRedisConfig } from "../../../../lib/redis";
-import { getConnectionCodeKey, isSupportedProvider } from "../../../../lib/oauth";
+import { getConnectionCodeKey } from "../../../../lib/oauth";
+import { isSupportedProvider } from "../../../../lib/rocky-connections";
 
 export async function POST(request) {
   let body = null;
@@ -42,7 +43,11 @@ export async function POST(request) {
 
   return NextResponse.json({
     ok: true,
-    token: stored.connection,
-    connection: stored.connection,
+    token: {
+      connection_mode: "composio",
+      provider: stored.provider,
+      composio_entity_id: stored.composio_entity_id,
+      composio_connected_account_id: stored.composio_connected_account_id || null,
+    },
   });
 }

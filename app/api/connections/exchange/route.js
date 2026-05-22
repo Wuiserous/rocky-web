@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getRedis } from "../../../../lib/redis";
+import { getRedis, hasRedisConfig } from "../../../../lib/redis";
 import { envReady, getConnectionCodeKey, isSupportedGoogleProvider } from "../../../../lib/oauth";
 
 export async function POST(request) {
@@ -22,7 +22,7 @@ export async function POST(request) {
     return NextResponse.json({ ok: false, error: "missing_code" }, { status: 400 });
   }
 
-  if (!envReady("CONNECTION_CODE_SECRET", "UPSTASH_REDIS_REST_URL", "UPSTASH_REDIS_REST_TOKEN")) {
+  if (!envReady("CONNECTION_CODE_SECRET") || !hasRedisConfig()) {
     return NextResponse.json({ ok: false, error: "broker_not_configured" }, { status: 503 });
   }
 

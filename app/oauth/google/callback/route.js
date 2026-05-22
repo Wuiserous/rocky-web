@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getRedis } from "../../../../lib/redis";
+import { getRedis, hasRedisConfig } from "../../../../lib/redis";
 import {
   GOOGLE_CALLBACK_URL,
   errorPage,
@@ -26,10 +26,9 @@ export async function GET(request) {
     !envReady(
       "GOOGLE_CLIENT_ID",
       "GOOGLE_CLIENT_SECRET",
-      "CONNECTION_CODE_SECRET",
-      "UPSTASH_REDIS_REST_URL",
-      "UPSTASH_REDIS_REST_TOKEN"
+      "CONNECTION_CODE_SECRET"
     )
+    || !hasRedisConfig()
   ) {
     return errorPage("Connection unavailable", "Rocky's Google connection service is not configured yet.", 503);
   }

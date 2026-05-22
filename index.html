@@ -257,12 +257,9 @@
               data-download-url="https://github.com/Wuiserous/rocky-pet-updates/releases/download/v2.0.1/RockySetup.exe"
               data-version-url="https://raw.githubusercontent.com/Wuiserous/rocky-pet-updates/main/windows/version.json"
             >
-              <span id="windows-download-label">Sign in to download</span>
+              <span id="windows-download-label">Download for Windows</span>
               <small id="windows-download-version">v2.0.1</small>
             </a>
-            <p class="download-auth-status" id="download-auth-status" aria-live="polite">
-              Google sign-in required before download.
-            </p>
             <button class="button disabled" type="button" disabled>
               Mac app
               <small>Coming soon</small>
@@ -276,25 +273,6 @@
       <span>Rocky Desktop Pet</span>
       <span>A voice-first AI companion for your screen.</span>
     </footer>
-
-    <div class="auth-modal" id="auth-modal" hidden>
-      <div class="auth-modal__backdrop" data-auth-close></div>
-      <section class="auth-modal__panel" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
-        <button class="auth-modal__close" type="button" data-auth-close aria-label="Close sign in">&times;</button>
-        <img id="auth-pet" src="pets/golem_male/happy.gif" alt="">
-        <p class="section-kicker">Before download</p>
-        <h2 id="auth-modal-title">Sign in with Google to get Rocky.</h2>
-        <p id="auth-message">
-          This keeps downloads attached to a real account before the Windows installer starts.
-        </p>
-        <div class="auth-modal__actions">
-          <button class="button primary" id="google-signin-button" type="button">
-            Continue with Google
-          </button>
-        </div>
-        <small id="auth-helper">Your browser will open Google's secure sign-in window.</small>
-      </section>
-    </div>
 
     <script src="firebase-config.js?v=2"></script>
     <script type="module" src="script.js"></script>

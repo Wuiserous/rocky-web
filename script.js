@@ -139,23 +139,16 @@ const windowsDownloadLabel = document.querySelector("#windows-download-label");
 const windowsDownloadVersion = document.querySelector("#windows-download-version");
 const releaseNote = document.querySelector("#release-note");
 const releaseList = document.querySelector("#release-list");
-const authModal = document.querySelector("#auth-modal");
-const authPet = document.querySelector("#auth-pet");
-const authMessage = document.querySelector("#auth-message");
-const authHelper = document.querySelector("#auth-helper");
-const googleSigninButton = document.querySelector("#google-signin-button");
-const authCloseButtons = document.querySelectorAll("[data-auth-close]");
-const downloadAuthStatus = document.querySelector("#download-auth-status");
 
 let activePetId = "rocky";
 let firebaseAuthState = null;
 let firebaseProvider = null;
 let firebaseAuthPromise = null;
 let signedInUser = null;
-let pendingDownloadAfterSignIn = false;
 
 const firebaseSdkVersion = "10.14.1";
 const firebaseRequiredFields = ["apiKey", "authDomain", "projectId", "appId"];
+const pendingDownloadKey = "rocky_pending_download";
 
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
@@ -264,20 +257,6 @@ commandButtons.forEach((button) => {
 if (windowsDownloadLink) {
   windowsDownloadLink.addEventListener("click", handleWindowsDownloadClick);
 }
-
-if (googleSigninButton) {
-  googleSigninButton.addEventListener("click", signInWithGoogle);
-}
-
-authCloseButtons.forEach((button) => {
-  button.addEventListener("click", closeAuthModal);
-});
-
-window.addEventListener("keydown", (event) => {
-  if (event.key === "Escape" && authModal && !authModal.hidden) {
-    closeAuthModal();
-  }
-});
 
 window.addEventListener("scroll", () => {
   const scrollY = window.scrollY;
@@ -392,12 +371,6 @@ function getWindowsDownloadUrl() {
   return isValidHttpUrl(syncedUrl) ? syncedUrl : "";
 }
 
-function updateAuthStatus(message) {
-  if (downloadAuthStatus) {
-    downloadAuthStatus.textContent = message;
-  }
-}
-
 function isFirebaseConfigured() {
   const config = window.ROCKY_FIREBASE_CONFIG || window.firebaseConfig;
   if (!config || typeof config !== "object") return false;
@@ -408,64 +381,12 @@ function isFirebaseConfigured() {
   });
 }
 
-function openAuthModal(message) {
-  if (!authModal) return;
-  const pet = pets[activePetId];
-
-  if (authPet && pet) {
-    authPet.src = pet.happy;
-    authPet.alt = `${pet.name} happy animation`;
-  }
-
-  if (message && authMessage) {
-    authMessage.textContent = message;
-  }
-
-  if (!signedInUser && authHelper) {
-    authHelper.textContent = "The download starts automatically after Google sign-in.";
-  }
-
-  authModal.hidden = false;
-  document.body.classList.add("auth-open");
-  requestAnimationFrame(() => googleSigninButton?.focus());
-}
-
-function closeAuthModal() {
-  if (!authModal) return;
-  authModal.hidden = true;
-  document.body.classList.remove("auth-open");
-  pendingDownloadAfterSignIn = false;
-}
-
-function setAuthBusy(isBusy) {
-  if (googleSigninButton) {
-    googleSigninButton.disabled = isBusy;
-    googleSigninButton.textContent = isBusy ? "Opening Google..." : "Continue with Google";
-  }
-}
-
 function setSignedInUser(user) {
   signedInUser = user || null;
-  const displayName = signedInUser?.displayName || signedInUser?.email || "Google account";
 
   if (signedInUser) {
-    updateAuthStatus(`Signed in as ${displayName}. Download is ready.`);
-    if (authMessage) {
-      authMessage.textContent = `You are signed in as ${displayName}. Rocky is ready to download.`;
-    }
-    if (authHelper) {
-      authHelper.textContent = "Starting the installer download now.";
-    }
     if (windowsDownloadLabel) {
       windowsDownloadLabel.textContent = "Download for Windows";
-    }
-  } else {
-    updateAuthStatus("Google sign-in required before download.");
-    if (authHelper) {
-      authHelper.textContent = "Your browser will open Google's secure sign-in window.";
-    }
-    if (windowsDownloadLabel) {
-      windowsDownloadLabel.textContent = "Sign in to download";
     }
   }
 }
@@ -490,11 +411,20 @@ async function getFirebaseAuth() {
 
     authModule.onAuthStateChanged(auth, (user) => {
       setSignedInUser(user);
-      if (user && pendingDownloadAfterSignIn) {
-        pendingDownloadAfterSignIn = false;
+      if (user && sessionStorage.getItem(pendingDownloadKey) === "true") {
+        sessionStorage.removeItem(pendingDownloadKey);
         startWindowsDownload();
       }
     });
+
+    const redirectResult = await authModule.getRedirectResult(auth);
+    if (redirectResult?.user) {
+      setSignedInUser(redirectResult.user);
+      if (sessionStorage.getItem(pendingDownloadKey) === "true") {
+        sessionStorage.removeItem(pendingDownloadKey);
+        startWindowsDownload();
+      }
+    }
 
     firebaseAuthState = { auth, authModule };
     firebaseProvider = provider;
@@ -504,38 +434,27 @@ async function getFirebaseAuth() {
   return firebaseAuthPromise;
 }
 
-async function signInWithGoogle() {
-  setAuthBusy(true);
-
+async function beginGoogleAuthAndDownload() {
   try {
     const { auth, authModule } = await getFirebaseAuth();
-    const result = await authModule.signInWithPopup(auth, firebaseProvider);
-    setSignedInUser(result.user);
-    if (pendingDownloadAfterSignIn) {
-      pendingDownloadAfterSignIn = false;
+    if (auth.currentUser) {
+      setSignedInUser(auth.currentUser);
       startWindowsDownload();
+      return;
     }
+
+    sessionStorage.setItem(pendingDownloadKey, "true");
+    await authModule.signInWithRedirect(auth, firebaseProvider);
   } catch (error) {
+    sessionStorage.removeItem(pendingDownloadKey);
     console.warn("Google sign-in failed.", error);
-
-    if (authMessage) {
-      authMessage.textContent = isFirebaseConfigured()
-        ? "Google sign-in could not complete. Check that popups are allowed and this domain is authorized in Firebase."
-        : "Firebase is not configured yet. Add your web app values in firebase-config.js, then enable Google sign-in in Firebase.";
-    }
-
-    if (authHelper) {
-      authHelper.textContent = "The download will stay locked until sign-in is working.";
-    }
-  } finally {
-    setAuthBusy(false);
   }
 }
 
 function startWindowsDownload() {
   const downloadUrl = getWindowsDownloadUrl();
   if (!downloadUrl) {
-    openAuthModal("The latest Windows download URL is still loading. Please try again in a moment.");
+    console.warn("The latest Windows download URL is still loading.");
     return;
   }
 
@@ -550,24 +469,12 @@ async function handleWindowsDownloadClick(event) {
     return;
   }
 
-  pendingDownloadAfterSignIn = true;
-  openAuthModal("Sign in with Google once, then Rocky will start downloading automatically.");
-
   if (!isFirebaseConfigured()) {
-    if (authMessage) {
-      authMessage.textContent = "Firebase is not configured yet. Fill firebase-config.js with your Firebase web app values first.";
-    }
-    if (authHelper) {
-      authHelper.textContent = "After setup, this same button will open Google sign-in and then start the download.";
-    }
+    console.warn("Firebase is not configured yet. Fill firebase-config.js with your Firebase web app values first.");
     return;
   }
 
-  try {
-    await getFirebaseAuth();
-  } catch (error) {
-    console.warn("Firebase auth is not ready.", error);
-  }
+  await beginGoogleAuthAndDownload();
 }
 
 async function syncWindowsDownload() {

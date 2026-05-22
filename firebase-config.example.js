@@ -4,3 +4,5 @@ window.ROCKY_FIREBASE_CONFIG = {
   projectId: "PASTE_PROJECT_ID",
   appId: "PASTE_FIREBASE_APP_ID",
 };
+
+window.firebaseConfig = window.ROCKY_FIREBASE_CONFIG;

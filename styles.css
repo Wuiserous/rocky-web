@@ -1056,7 +1056,7 @@ footer {
 
 .download-card {
   display: grid;
-  grid-template-columns: 150px minmax(0, 1fr) minmax(240px, auto);
+  grid-template-columns: 150px minmax(0, 1fr) minmax(240px, 270px);
   gap: 28px;
   align-items: center;
   padding: 24px;
@@ -1116,13 +1116,18 @@ footer {
 }
 
 .download-actions {
-  justify-content: flex-end;
+  display: grid;
+  width: min(270px, 100%);
+  gap: 10px;
+  justify-self: end;
+  justify-content: stretch;
 }
 
 .download-actions .button {
   display: inline-flex;
   flex-direction: column;
-  min-width: 200px;
+  width: 100%;
+  min-width: 0;
   gap: 3px;
   line-height: 1.1;
 }
@@ -1135,12 +1140,16 @@ footer {
 
 .download-auth-status {
   width: 100%;
-  max-width: 240px;
-  margin: 2px 0 0 auto;
-  color: rgba(255, 250, 240, 0.58);
+  max-width: none;
+  margin: -2px 0 0;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 8px;
+  background: rgba(7, 10, 8, 0.34);
+  color: rgba(255, 250, 240, 0.66);
+  padding: 9px 10px;
   font-size: 12px;
   line-height: 1.45;
-  text-align: right;
+  text-align: center;
 }
 
 .auth-modal[hidden] {
@@ -1354,6 +1363,7 @@ footer {
 
   .download-actions {
     justify-content: flex-start;
+    justify-self: stretch;
   }
 }
 
@@ -1568,9 +1578,8 @@ footer {
   }
 
   .download-auth-status {
-    max-width: none;
     margin-left: 0;
-    text-align: left;
+    text-align: center;
   }
 
   .auth-modal__panel {

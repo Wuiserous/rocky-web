@@ -407,7 +407,7 @@ function updateAuthStatus(message) {
 }
 
 function isFirebaseConfigured() {
-  const config = window.ROCKY_FIREBASE_CONFIG;
+  const config = window.ROCKY_FIREBASE_CONFIG || window.firebaseConfig;
   if (!config || typeof config !== "object") return false;
 
   return firebaseRequiredFields.every((field) => {
@@ -468,7 +468,7 @@ function setSignedInUser(user) {
       windowsDownloadLabel.textContent = "Download for Windows";
     }
   } else {
-    updateAuthStatus("Google sign-in is required before the installer starts.");
+    updateAuthStatus("Google sign-in required before download.");
     if (authHelper) {
       authHelper.textContent = "Your browser will open Google's secure sign-in window.";
     }
@@ -491,7 +491,7 @@ async function getFirebaseAuth() {
       import(`https://www.gstatic.com/firebasejs/${firebaseSdkVersion}/firebase-auth.js`),
     ]);
 
-    const app = getApps().length ? getApps()[0] : initializeApp(window.ROCKY_FIREBASE_CONFIG);
+    const app = getApps().length ? getApps()[0] : initializeApp(window.ROCKY_FIREBASE_CONFIG || window.firebaseConfig);
     const auth = authModule.getAuth(app);
     const provider = new authModule.GoogleAuthProvider();
     provider.setCustomParameters({ prompt: "select_account" });

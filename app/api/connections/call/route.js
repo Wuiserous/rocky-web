@@ -241,11 +241,7 @@ export async function POST(request) {
       }
 
       const session = await createProviderSession(composio, providerConfig, entityId, connectedAccountId);
-      const result = await session.execute(
-        operation.tool_slug,
-        operation.arguments || {},
-        connectedAccountId ? { account: connectedAccountId } : undefined
-      );
+      const result = await session.execute(operation.tool_slug, operation.arguments || {});
       const successful = result?.successful !== false && !result?.error;
 
       return cappedJson({

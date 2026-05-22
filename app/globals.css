@@ -1,4 +1,4 @@
-:root {
+﻿:root {
   color-scheme: dark;
   --bg: #080b0a;
   --bg-2: #111611;
@@ -18,8 +18,8 @@
   --accent-soft: rgba(216, 255, 125, 0.16);
   --accent-line: rgba(216, 255, 125, 0.46);
   --shadow: 0 30px 90px rgba(0, 0, 0, 0.42);
-  --active-banner: url("assets/rocky-banner.png");
-  --scene-bg: url("assets/rocky-banner.png");
+  --active-banner: url("/assets/rocky-banner.png");
+  --scene-bg: url("/assets/rocky-banner.png");
   --hero-drift: 0px;
   --scroll-progress: 0;
 }
@@ -1175,7 +1175,7 @@ footer {
   border-radius: 8px;
   background:
     linear-gradient(90deg, rgba(7, 10, 8, 0.94), rgba(7, 10, 8, 0.58)),
-    url("assets/rocky-banner.png") center / cover no-repeat;
+    url("/assets/rocky-banner.png") center / cover no-repeat;
   padding: 44px;
   overflow: hidden;
   box-shadow: var(--shadow);
@@ -1565,3 +1565,4 @@ footer {
     width: 100%;
   }
 }
+

@@ -145,10 +145,10 @@ let firebaseAuthState = null;
 let firebaseProvider = null;
 let firebaseAuthPromise = null;
 let signedInUser = null;
+let initialAuthReadyPromise = null;
 
 const firebaseSdkVersion = "10.14.1";
 const firebaseRequiredFields = ["apiKey", "authDomain", "projectId", "appId"];
-const pendingDownloadKey = "rocky_pending_download";
 
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
@@ -406,27 +406,22 @@ async function getFirebaseAuth() {
 
     const app = getApps().length ? getApps()[0] : initializeApp(window.ROCKY_FIREBASE_CONFIG || window.firebaseConfig);
     const auth = authModule.getAuth(app);
-    const provider = new authModule.GoogleAuthProvider();
-    provider.setCustomParameters({ prompt: "select_account" });
+    await authModule.setPersistence(auth, authModule.browserLocalPersistence);
 
-    authModule.onAuthStateChanged(auth, (user) => {
-      setSignedInUser(user);
-      if (user && sessionStorage.getItem(pendingDownloadKey) === "true") {
-        sessionStorage.removeItem(pendingDownloadKey);
-        startWindowsDownload();
-      }
+    const provider = new authModule.GoogleAuthProvider();
+
+    initialAuthReadyPromise = new Promise((resolve) => {
+      let resolved = false;
+      authModule.onAuthStateChanged(auth, (user) => {
+        setSignedInUser(user);
+        if (!resolved) {
+          resolved = true;
+          resolve(user);
+        }
+      });
     });
 
-    const redirectResult = await authModule.getRedirectResult(auth);
-    if (redirectResult?.user) {
-      setSignedInUser(redirectResult.user);
-      if (sessionStorage.getItem(pendingDownloadKey) === "true") {
-        sessionStorage.removeItem(pendingDownloadKey);
-        startWindowsDownload();
-      }
-    }
-
-    firebaseAuthState = { auth, authModule };
+    firebaseAuthState = { auth, authModule, initialAuthReadyPromise };
     firebaseProvider = provider;
     return firebaseAuthState;
   })();
@@ -434,19 +429,27 @@ async function getFirebaseAuth() {
   return firebaseAuthPromise;
 }
 
+function wait(ms) {
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, ms);
+  });
+}
+
 async function beginGoogleAuthAndDownload() {
   try {
-    const { auth, authModule } = await getFirebaseAuth();
-    if (auth.currentUser) {
-      setSignedInUser(auth.currentUser);
+    const { auth, authModule, initialAuthReadyPromise: authReady } = await getFirebaseAuth();
+    const restoredUser = auth.currentUser || signedInUser || (await Promise.race([authReady, wait(900)]));
+
+    if (restoredUser || auth.currentUser) {
+      setSignedInUser(restoredUser || auth.currentUser);
       startWindowsDownload();
       return;
     }
 
-    sessionStorage.setItem(pendingDownloadKey, "true");
-    await authModule.signInWithRedirect(auth, firebaseProvider);
+    const result = await authModule.signInWithPopup(auth, firebaseProvider);
+    setSignedInUser(result.user);
+    startWindowsDownload();
   } catch (error) {
-    sessionStorage.removeItem(pendingDownloadKey);
     console.warn("Google sign-in failed.", error);
   }
 }

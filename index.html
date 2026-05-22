@@ -198,32 +198,32 @@
         </div>
         <div class="capability-grid">
           <article>
-            <img class="capability-emote" data-emote="talking" src="pets/golem_male/talking.gif" alt="">
+            <img class="capability-emote" data-emote="capVoice" src="pets/golem_male/talking.gif" alt="">
             <h3>Realtime voice</h3>
             <p>Talk naturally. Rocky replies with the selected pet's personality and voice.</p>
           </article>
           <article>
-            <img class="capability-emote" data-emote="thinking" src="pets/golem_male/thinking.gif" alt="">
+            <img class="capability-emote" data-emote="capAnswers" src="pets/golem_male/thinking.gif" alt="">
             <h3>Fresh answers</h3>
             <p>Weather, latest news, local context, app/file help, and screen questions.</p>
           </article>
           <article>
-            <img class="capability-emote" data-emote="happy" src="pets/golem_male/happy.gif" alt="">
+            <img class="capability-emote" data-emote="capMemory" src="pets/golem_male/happy.gif" alt="">
             <h3>Useful memory</h3>
             <p>Projects, people, work hours, interests, dislikes, and reminder style.</p>
           </article>
           <article>
-            <img class="capability-emote" data-emote="sleeping" src="pets/golem_male/sleeping.gif" alt="">
+            <img class="capability-emote" data-emote="capRhythm" src="pets/golem_male/sleeping.gif" alt="">
             <h3>Human rhythm</h3>
             <p>Sleeps after inactivity, wakes with intent, and follows a daily schedule.</p>
           </article>
           <article>
-            <img class="capability-emote" data-emote="dance" src="pets/golem_male/dance.gif" alt="">
+            <img class="capability-emote" data-emote="capTasks" src="pets/golem_male/dance.gif" alt="">
             <h3>Recurring tasks</h3>
             <p>One-time reminders, habits, weekly checks, and visible task controls.</p>
           </article>
           <article>
-            <img class="capability-emote" data-emote="thinking" src="pets/golem_male/thinking.gif" alt="">
+            <img class="capability-emote" data-emote="capHandoff" src="pets/golem_male/drag_up.gif" alt="">
             <h3>Project handoff</h3>
             <p>Rocky can ask Codex to inspect or build projects while staying the friendly layer.</p>
           </article>
@@ -253,12 +253,16 @@
             <a
               class="button primary"
               id="windows-download-link"
-              href="https://github.com/Wuiserous/rocky-pet-updates/releases/download/v2.0.1/RockySetup.exe"
+              href="#download"
+              data-download-url="https://github.com/Wuiserous/rocky-pet-updates/releases/download/v2.0.1/RockySetup.exe"
               data-version-url="https://raw.githubusercontent.com/Wuiserous/rocky-pet-updates/main/windows/version.json"
             >
-              Download for Windows
+              <span id="windows-download-label">Sign in to download</span>
               <small id="windows-download-version">v2.0.1</small>
             </a>
+            <p class="download-auth-status" id="download-auth-status" aria-live="polite">
+              Google sign-in is required before the installer starts.
+            </p>
             <button class="button disabled" type="button" disabled>
               Mac app
               <small>Coming soon</small>
@@ -273,6 +277,29 @@
       <span>A voice-first AI companion for your screen.</span>
     </footer>
 
-    <script src="script.js"></script>
+    <div class="auth-modal" id="auth-modal" hidden>
+      <div class="auth-modal__backdrop" data-auth-close></div>
+      <section class="auth-modal__panel" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
+        <button class="auth-modal__close" type="button" data-auth-close aria-label="Close sign in">&times;</button>
+        <img id="auth-pet" src="pets/golem_male/happy.gif" alt="">
+        <p class="section-kicker">Before download</p>
+        <h2 id="auth-modal-title">Sign in with Google to get Rocky.</h2>
+        <p id="auth-message">
+          This keeps downloads attached to a real account before the Windows installer starts.
+        </p>
+        <div class="auth-modal__actions">
+          <button class="button primary" id="google-signin-button" type="button">
+            Continue with Google
+          </button>
+          <button class="button glass" id="auth-download-button" type="button" hidden>
+            Start download
+          </button>
+        </div>
+        <small id="auth-helper">Your browser will open Google's secure sign-in window.</small>
+      </section>
+    </div>
+
+    <script src="firebase-config.js"></script>
+    <script type="module" src="script.js"></script>
   </body>
 </html>

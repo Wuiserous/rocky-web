@@ -1,0 +1,32 @@
+{
+  "walking_right": {
+    "frames": 4,
+    "frameWidth": 256,
+    "frameHeight": 256
+  },
+  "thinking": {
+    "frames": 4,
+    "frameWidth": 256,
+    "frameHeight": 256
+  },
+  "talking": {
+    "frames": 4,
+    "frameWidth": 256,
+    "frameHeight": 256
+  },
+  "happy": {
+    "frames": 4,
+    "frameWidth": 256,
+    "frameHeight": 256
+  },
+  "idle": {
+    "frames": 4,
+    "frameWidth": 256,
+    "frameHeight": 256
+  },
+  "walking_left": {
+    "frames": 4,
+    "frameWidth": 256,
+    "frameHeight": 256
+  }
+}

@@ -1,0 +1,671 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: #070b0a;
+        font-family: "Segoe UI Variable", Inter, system-ui, sans-serif;
+        color: #fff6dc;
+      }
+
+      #root {
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background:
+          radial-gradient(circle at 18% 18%, rgba(217, 255, 125, 0.16), transparent 30%),
+          radial-gradient(circle at 82% 25%, rgba(119, 216, 255, 0.14), transparent 32%),
+          linear-gradient(180deg, #111710 0%, #070b0a 56%, #0c100d 100%);
+      }
+
+      .wallpaper {
+        position: absolute;
+        inset: -20px;
+        background: url("assets/rocky-banner.png") center / cover no-repeat;
+        opacity: 0.34;
+        filter: saturate(1.15) contrast(1.05);
+      }
+
+      .shade {
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(90deg, rgba(7, 11, 10, 0.95), rgba(7, 11, 10, 0.52), rgba(7, 11, 10, 0.9)),
+          linear-gradient(0deg, rgba(7, 11, 10, 0.92), transparent 54%);
+      }
+
+      .desktop-grid {
+        position: absolute;
+        inset: 0;
+        opacity: 0.35;
+        background:
+          repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.045) 0 1px, transparent 1px 80px),
+          repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 80px);
+        mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.65), transparent 82%);
+      }
+
+      .topbar {
+        position: absolute;
+        top: 42px;
+        left: 80px;
+        right: 80px;
+        height: 72px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 14px;
+        background: rgba(10, 14, 11, 0.78);
+        box-shadow: 0 24px 70px rgba(0, 0, 0, 0.34);
+        padding: 0 24px;
+        backdrop-filter: blur(18px);
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        font-weight: 900;
+        font-size: 24px;
+      }
+
+      .brand img {
+        width: 44px;
+        height: 44px;
+        object-fit: contain;
+      }
+
+      .clock {
+        color: rgba(255, 246, 220, 0.66);
+        font-size: 18px;
+        font-weight: 700;
+      }
+
+      .scene-title {
+        position: absolute;
+        left: 86px;
+        top: 160px;
+        width: 690px;
+      }
+
+      .kicker {
+        display: inline-flex;
+        margin-bottom: 16px;
+        border: 1px solid rgba(244, 200, 107, 0.34);
+        border-radius: 999px;
+        background: rgba(244, 200, 107, 0.12);
+        color: #f4c86b;
+        padding: 8px 12px;
+        font-size: 15px;
+        font-weight: 950;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        margin: 0 0 18px;
+        max-width: 600px;
+        color: #fff6dc;
+        font-size: 76px;
+        font-weight: 950;
+        line-height: 0.9;
+        letter-spacing: 0;
+      }
+
+      .subtitle {
+        margin: 0;
+        max-width: 630px;
+        color: rgba(255, 246, 220, 0.74);
+        font-size: 26px;
+        line-height: 1.45;
+      }
+
+      .dock {
+        position: absolute;
+        left: 50%;
+        bottom: 54px;
+        display: flex;
+        gap: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 22px;
+        background: rgba(10, 14, 11, 0.72);
+        padding: 14px;
+        box-shadow: 0 22px 80px rgba(0, 0, 0, 0.38);
+        backdrop-filter: blur(18px);
+      }
+
+      .dock-icon {
+        width: 66px;
+        height: 66px;
+        display: grid;
+        place-items: center;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.08);
+        color: #fff6dc;
+        font-size: 30px;
+        font-weight: 950;
+      }
+
+      .window {
+        position: absolute;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 18px;
+        background: rgba(12, 17, 14, 0.84);
+        box-shadow: 0 30px 90px rgba(0, 0, 0, 0.42);
+        overflow: hidden;
+        backdrop-filter: blur(18px);
+      }
+
+      .window::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.09), transparent 42%);
+      }
+
+      .window-header {
+        height: 52px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 0 18px;
+        color: rgba(255, 246, 220, 0.72);
+        font-size: 17px;
+        font-weight: 850;
+      }
+
+      .dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #ffb0ce;
+      }
+
+      .dot:nth-child(2) {
+        background: #f4c86b;
+      }
+
+      .dot:nth-child(3) {
+        background: #d9ff7d;
+        margin-right: 8px;
+      }
+
+      .browser {
+        top: 248px;
+        right: 110px;
+        width: 720px;
+        height: 382px;
+      }
+
+      .search-bar {
+        height: 54px;
+        margin: 22px;
+        display: flex;
+        align-items: center;
+        border: 1px solid rgba(119, 216, 255, 0.24);
+        border-radius: 14px;
+        background: rgba(119, 216, 255, 0.08);
+        color: #dff7ff;
+        padding: 0 18px;
+        font-size: 22px;
+        font-weight: 800;
+      }
+
+      .search-cursor {
+        display: inline-block;
+        width: 2px;
+        height: 26px;
+        margin-left: 4px;
+        background: #77d8ff;
+      }
+
+      .news-list {
+        display: grid;
+        gap: 13px;
+        padding: 0 22px;
+      }
+
+      .news-row {
+        min-height: 56px;
+        display: grid;
+        grid-template-columns: 52px 1fr;
+        gap: 14px;
+        align-items: center;
+        border: 1px solid rgba(255, 255, 255, 0.09);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.055);
+        padding: 10px;
+      }
+
+      .news-thumb {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #77d8ff, #d9ff7d);
+      }
+
+      .line {
+        height: 11px;
+        border-radius: 999px;
+        background: rgba(255, 246, 220, 0.36);
+      }
+
+      .line.short {
+        width: 58%;
+        margin-top: 9px;
+        background: rgba(255, 246, 220, 0.18);
+      }
+
+      .app-window {
+        top: 310px;
+        left: 135px;
+        width: 520px;
+        height: 330px;
+      }
+
+      .app-body {
+        display: grid;
+        grid-template-columns: 150px 1fr;
+        gap: 18px;
+        padding: 22px;
+      }
+
+      .app-sidebar {
+        display: grid;
+        gap: 12px;
+      }
+
+      .sidebar-pill {
+        height: 40px;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      .assistant-card {
+        min-height: 218px;
+        border: 1px solid rgba(217, 255, 125, 0.2);
+        border-radius: 18px;
+        background: rgba(217, 255, 125, 0.08);
+        padding: 22px;
+      }
+
+      .assistant-card strong {
+        display: block;
+        margin-bottom: 12px;
+        color: #d9ff7d;
+        font-size: 22px;
+      }
+
+      .assistant-card p {
+        margin: 0;
+        color: rgba(255, 246, 220, 0.72);
+        font-size: 18px;
+        line-height: 1.5;
+      }
+
+      .finder {
+        right: 135px;
+        bottom: 176px;
+        width: 625px;
+        height: 302px;
+      }
+
+      .finder-body {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+        padding: 22px;
+      }
+
+      .file-card {
+        min-height: 186px;
+        border: 1px solid rgba(255, 255, 255, 0.11);
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.06);
+        padding: 16px;
+      }
+
+      .file-icon {
+        width: 58px;
+        height: 48px;
+        margin-bottom: 18px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #f4c86b, #d9ff7d);
+      }
+
+      .task-chip {
+        position: absolute;
+        left: 88px;
+        bottom: 178px;
+        width: 560px;
+        border: 1px solid rgba(217, 255, 125, 0.24);
+        border-radius: 18px;
+        background: rgba(10, 14, 11, 0.82);
+        padding: 22px 24px;
+        box-shadow: 0 28px 80px rgba(0, 0, 0, 0.36);
+      }
+
+      .task-label {
+        margin-bottom: 8px;
+        color: #d9ff7d;
+        font-size: 15px;
+        font-weight: 950;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .task-text {
+        color: #fff6dc;
+        font-size: 28px;
+        font-weight: 900;
+        line-height: 1.18;
+      }
+
+      .rocky {
+        position: absolute;
+        z-index: 20;
+        left: 86px;
+        bottom: 130px;
+        width: 156px;
+        height: 156px;
+        background-repeat: no-repeat;
+        background-position: 0 0;
+        background-size: 624px 156px;
+        filter: drop-shadow(0 22px 25px rgba(0, 0, 0, 0.48));
+        transform-origin: center bottom;
+      }
+
+      .rocky.walk,
+      .rocky.walk-left,
+      .rocky.think,
+      .rocky.talk,
+      .rocky.happy {
+        opacity: 0;
+      }
+
+      .rocky.walk {
+        background-image: url("sprites/walking_right.png");
+      }
+
+      .rocky.walk-left {
+        background-image: url("sprites/walking_left.png");
+      }
+
+      .rocky.think {
+        background-image: url("sprites/thinking.png");
+      }
+
+      .rocky.talk {
+        background-image: url("sprites/talking.png");
+      }
+
+      .rocky.happy {
+        background-image: url("sprites/happy.png");
+      }
+
+      .cursor-glow {
+        position: absolute;
+        z-index: 18;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: #d9ff7d;
+        box-shadow: 0 0 28px rgba(217, 255, 125, 0.72);
+        opacity: 0;
+      }
+
+      .caption {
+        position: absolute;
+        left: 50%;
+        bottom: 282px;
+        z-index: 25;
+        width: 700px;
+        border: 1px solid rgba(217, 255, 125, 0.26);
+        border-radius: 18px;
+        background: rgba(8, 12, 9, 0.94);
+        color: #fff6dc;
+        padding: 22px 26px;
+        box-shadow: 0 26px 70px rgba(0, 0, 0, 0.34);
+        font-size: 30px;
+        font-weight: 950;
+        line-height: 1.18;
+        opacity: 0;
+      }
+
+      .complete-badge {
+        position: absolute;
+        right: 92px;
+        top: 150px;
+        z-index: 26;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        border: 1px solid rgba(217, 255, 125, 0.3);
+        border-radius: 18px;
+        background: rgba(9, 14, 10, 0.82);
+        color: #fff6dc;
+        padding: 18px 22px;
+        box-shadow: 0 26px 70px rgba(0, 0, 0, 0.34);
+        opacity: 0;
+      }
+
+      .complete-mark {
+        width: 34px;
+        height: 34px;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        background: #d9ff7d;
+        color: #091108;
+      }
+
+      .complete-mark::before {
+        content: "";
+        width: 16px;
+        height: 9px;
+        border-left: 4px solid #091108;
+        border-bottom: 4px solid #091108;
+        transform: rotate(-45deg) translate(1px, -1px);
+      }
+
+      .complete-copy strong {
+        display: block;
+        font-size: 22px;
+      }
+
+      .complete-copy span {
+        color: rgba(255, 246, 220, 0.64);
+        font-size: 15px;
+        font-weight: 800;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="18"
+      data-width="1920"
+      data-height="1080"
+    >
+      <div class="wallpaper" data-layout-ignore></div>
+      <div class="shade" data-layout-ignore></div>
+      <div class="desktop-grid" data-layout-ignore></div>
+
+      <div class="topbar">
+        <div class="brand"><img src="sprites/rocky-icon.png" alt="" />Rocky Desktop Pet</div>
+        <div class="clock">Friday · 9:42 AM · Focus session</div>
+      </div>
+
+      <section class="scene-title">
+        <div class="kicker">Natural desktop assistant</div>
+        <h1>Rocky handles the little computer chores.</h1>
+        <p class="subtitle">He roams around your screen, checks the web, opens tools, finds files, and brings the useful bit back.</p>
+      </section>
+
+      <div class="window browser">
+        <div class="window-header"><span class="dot"></span><span class="dot"></span><span class="dot"></span>Web & news</div>
+        <div class="search-bar">searching latest AI desktop pet news<span class="search-cursor"></span></div>
+        <div class="news-list">
+          <div class="news-row"><span class="news-thumb"></span><div><div class="line"></div><div class="line short"></div></div></div>
+          <div class="news-row"><span class="news-thumb"></span><div><div class="line"></div><div class="line short"></div></div></div>
+          <div class="news-row"><span class="news-thumb"></span><div><div class="line"></div><div class="line short"></div></div></div>
+        </div>
+      </div>
+
+      <div class="window app-window">
+        <div class="window-header"><span class="dot"></span><span class="dot"></span><span class="dot"></span>Control Center</div>
+        <div class="app-body">
+          <div class="app-sidebar">
+            <span class="sidebar-pill"></span>
+            <span class="sidebar-pill"></span>
+            <span class="sidebar-pill"></span>
+            <span class="sidebar-pill"></span>
+          </div>
+          <div class="assistant-card">
+            <strong>Opening the right tool</strong>
+            <p>Rocky checks the active task, opens the app, and keeps the action visible.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="window finder">
+        <div class="window-header"><span class="dot"></span><span class="dot"></span><span class="dot"></span>Files</div>
+        <div class="finder-body">
+          <div class="file-card"><span class="file-icon"></span><div class="line"></div><div class="line short"></div></div>
+          <div class="file-card"><span class="file-icon"></span><div class="line"></div><div class="line short"></div></div>
+          <div class="file-card"><span class="file-icon"></span><div class="line"></div><div class="line short"></div></div>
+        </div>
+      </div>
+
+      <div class="task-chip">
+        <div class="task-label">Current task</div>
+        <div class="task-text">Find the latest update notes and the installer file.</div>
+      </div>
+
+      <div class="dock">
+        <div class="dock-icon">⌕</div>
+        <div class="dock-icon">☰</div>
+        <div class="dock-icon">▣</div>
+        <div class="dock-icon">✦</div>
+      </div>
+
+      <div class="rocky walk" aria-hidden="true"></div>
+      <div class="rocky walk-left" aria-hidden="true"></div>
+      <div class="rocky think" aria-hidden="true"></div>
+      <div class="rocky talk" aria-hidden="true"></div>
+      <div class="rocky happy" aria-hidden="true"></div>
+      <div class="cursor-glow"></div>
+      <div class="caption">Found it. Latest release notes, news summary, and installer are ready.</div>
+      <div class="complete-badge">
+        <span class="complete-mark" data-layout-ignore aria-hidden="true"></span>
+        <div class="complete-copy"><strong>Desktop chores handled</strong><span>web · apps · files · summary</span></div>
+      </div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      tl.set(".wallpaper", { scale: 1.04 }, 0);
+      tl.set(".dock", { xPercent: -50 }, 0);
+      tl.set(".caption", { xPercent: -50 }, 0);
+
+      const spriteEnd = "-468px";
+      function animateSprite(selector, start, duration, cycle) {
+        const repeats = Math.max(0, Math.ceil(duration / cycle) - 1);
+        tl.set(selector, { backgroundPositionX: "0px" }, start);
+        tl.to(selector, { backgroundPositionX: spriteEnd, duration: cycle, ease: "steps(3)", repeat: repeats }, start);
+      }
+
+      animateSprite(".rocky.walk", 0.4, 4.95, 1.05);
+      animateSprite(".rocky.think", 5.35, 1.05, 1.2);
+      animateSprite(".rocky.walk-left", 6.4, 2.25, 1.05);
+      animateSprite(".rocky.talk", 8.65, 0.95, 1.1);
+      animateSprite(".rocky.walk", 9.6, 2.65, 1.05);
+      animateSprite(".rocky.think", 12.25, 1.15, 1.2);
+      animateSprite(".rocky.walk-left", 13.4, 1.1, 1.05);
+      animateSprite(".rocky.happy", 14.5, 2.75, 1.25);
+
+      tl.from(".topbar", { y: -28, opacity: 0, duration: 0.7, ease: "power3.out" }, 0.15);
+      tl.from(".scene-title .kicker", { x: -28, opacity: 0, duration: 0.5, ease: "back.out(1.6)" }, 0.28);
+      tl.from(".scene-title h1", { y: 42, opacity: 0, duration: 0.75, ease: "expo.out" }, 0.38);
+      tl.from(".scene-title .subtitle", { y: 24, opacity: 0, duration: 0.6, ease: "power2.out" }, 0.62);
+      tl.from(".task-chip", { y: 30, opacity: 0, duration: 0.55, ease: "power2.out" }, 0.9);
+      tl.fromTo(".dock", { xPercent: -50, y: 40, opacity: 0 }, { xPercent: -50, y: 0, opacity: 1, duration: 0.65, ease: "back.out(1.4)" }, 1.0);
+
+      tl.set(".rocky.walk", { opacity: 1 }, 0.4);
+      tl.from(".rocky.walk", { x: -110, scale: 0.9, opacity: 0, duration: 0.55, ease: "power3.out" }, 0.4);
+      tl.to(".rocky.walk", { x: 660, y: -18, duration: 3.4, ease: "power1.inOut" }, 1.2);
+      tl.to(".cursor-glow", { opacity: 1, x: 755, y: 774, duration: 0.2, ease: "power2.out" }, 2.7);
+      tl.to(".cursor-glow", { x: 1480, y: 372, duration: 1.1, ease: "power2.inOut" }, 3.0);
+
+      tl.from(".browser", { x: 70, opacity: 0, scale: 0.96, duration: 0.72, ease: "expo.out" }, 3.15);
+      tl.from(".search-bar", { y: 18, opacity: 0, duration: 0.45, ease: "power2.out" }, 3.55);
+      tl.from(".news-row", { x: 28, opacity: 0, duration: 0.42, stagger: 0.14, ease: "power3.out" }, 4.1);
+      tl.to(".search-cursor", { opacity: 0.15, duration: 0.18, repeat: 11, yoyo: true, ease: "steps(1)" }, 3.6);
+
+      tl.set(".rocky.walk", { opacity: 0 }, 5.35);
+      tl.set(".rocky.think", { opacity: 1, x: 660, y: -18 }, 5.35);
+      tl.from(".rocky.think", { scale: 0.94, duration: 0.35, ease: "back.out(1.8)" }, 5.35);
+      tl.to(".task-text", { color: "#d9ff7d", duration: 0.35, ease: "power2.out" }, 5.7);
+
+      tl.set(".rocky.think", { opacity: 0 }, 6.4);
+      tl.set(".rocky.walk-left", { opacity: 1, x: 660, y: -18 }, 6.4);
+      tl.to(".scene-title", { opacity: 0.16, scale: 0.985, duration: 0.8, ease: "power2.out" }, 6.15);
+      tl.to(".rocky.walk-left", { x: 62, y: -34, duration: 2.25, ease: "power1.inOut" }, 6.4);
+      tl.from(".app-window", { x: -80, opacity: 0, scale: 0.96, duration: 0.72, ease: "expo.out" }, 7.05);
+      tl.from(".app-sidebar .sidebar-pill", { x: -16, opacity: 0, duration: 0.3, stagger: 0.08, ease: "power2.out" }, 7.55);
+      tl.from(".assistant-card", { y: 24, opacity: 0, duration: 0.5, ease: "back.out(1.5)" }, 7.75);
+
+      tl.set(".rocky.walk-left", { opacity: 0 }, 8.65);
+      tl.set(".rocky.talk", { opacity: 1, x: 62, y: -34 }, 8.65);
+      tl.from(".rocky.talk", { scale: 0.94, duration: 0.3, ease: "back.out(1.7)" }, 8.65);
+      tl.to(".cursor-glow", { x: 258, y: 402, duration: 0.75, ease: "power2.inOut" }, 8.8);
+
+      tl.set(".rocky.talk", { opacity: 0 }, 9.6);
+      tl.set(".rocky.walk", { opacity: 1, x: 62, y: -34 }, 9.6);
+      tl.to(".rocky.walk", { x: 1240, y: -6, duration: 2.65, ease: "power1.inOut" }, 9.6);
+      tl.from(".finder", { y: 60, opacity: 0, scale: 0.96, duration: 0.72, ease: "expo.out" }, 10.2);
+      tl.from(".file-card", { y: 22, opacity: 0, duration: 0.45, stagger: 0.12, ease: "power3.out" }, 10.9);
+      tl.to(".cursor-glow", { x: 1390, y: 706, duration: 0.75, ease: "power2.inOut" }, 11.2);
+
+      tl.set(".rocky.walk", { opacity: 0 }, 12.25);
+      tl.set(".rocky.think", { opacity: 1, x: 1240, y: -6 }, 12.25);
+      tl.to(".file-card:nth-child(2)", { borderColor: "rgba(217, 255, 125, 0.72)", backgroundColor: "rgba(217, 255, 125, 0.13)", duration: 0.5, ease: "power2.out" }, 12.55);
+      tl.to(".task-text", { color: "#fff6dc", duration: 0.35, ease: "power2.out" }, 12.8);
+
+      tl.set(".rocky.think", { opacity: 0 }, 13.4);
+      tl.set(".rocky.walk-left", { opacity: 1, x: 1240, y: -6 }, 13.4);
+      tl.to(".rocky.walk-left", { x: 760, y: -26, duration: 1.1, ease: "power1.inOut" }, 13.4);
+      tl.set(".rocky.walk-left", { opacity: 0 }, 14.5);
+      tl.set(".rocky.happy", { opacity: 1, x: 760, y: -26 }, 14.5);
+      tl.fromTo(".caption", { xPercent: -50, y: 28, opacity: 0, scale: 0.98 }, { xPercent: -50, y: 0, opacity: 1, scale: 1, duration: 0.6, ease: "back.out(1.4)" }, 14.7);
+      tl.from(".complete-badge", { y: -24, opacity: 0, scale: 0.96, duration: 0.55, ease: "back.out(1.7)" }, 15.2);
+      tl.fromTo(".wallpaper", { scale: 1.04, opacity: 0.34 }, { scale: 1.07, opacity: 0.42, duration: 17.4, ease: "none" }, 0.2);
+
+      tl.to(".caption", { opacity: 0, y: 18, duration: 0.45, ease: "power2.in" }, 17.15);
+      tl.to(".complete-badge", { opacity: 0, y: -14, duration: 0.45, ease: "power2.in" }, 17.2);
+      tl.to(".rocky.happy", { opacity: 0, scale: 0.94, duration: 0.45, ease: "power2.in" }, 17.25);
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

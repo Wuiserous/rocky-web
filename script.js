@@ -21,6 +21,16 @@ const pets = {
     dragDown: "pets/golem_male/drag_down.gif",
     walkRight: "pets/golem_male/walking_right.gif",
     walkLeft: "pets/golem_male/walking_left.gif",
+    demoDigest: "pets/golem_male/talking.gif",
+    demoReminder: "pets/golem_male/dance.gif",
+    demoContinue: "pets/golem_male/walking_right.gif",
+    demoScreen: "pets/golem_male/thinking.gif",
+    capVoice: "pets/golem_male/talking.gif",
+    capAnswers: "pets/golem_male/thinking.gif",
+    capMemory: "pets/golem_male/happy.gif",
+    capRhythm: "pets/golem_male/sleeping.gif",
+    capTasks: "pets/golem_male/dance.gif",
+    capHandoff: "pets/golem_male/drag_up.gif",
     alt: "Rocky idle animation",
   },
   rhea: {
@@ -45,6 +55,16 @@ const pets = {
     dragDown: "pets/golem_female/drag_down.gif",
     walkRight: "pets/golem_female/walk_right.gif",
     walkLeft: "pets/golem_female/walk_left.gif",
+    demoDigest: "pets/golem_female/talking.gif",
+    demoReminder: "pets/golem_female/dance.gif",
+    demoContinue: "pets/golem_female/walk_right.gif",
+    demoScreen: "pets/golem_female/thinking.gif",
+    capVoice: "pets/golem_female/talking.gif",
+    capAnswers: "pets/golem_female/thinking.gif",
+    capMemory: "pets/golem_female/happy.gif",
+    capRhythm: "pets/golem_female/sleep.gif",
+    capTasks: "pets/golem_female/dance.gif",
+    capHandoff: "pets/golem_female/drag_up.gif",
     alt: "Rhea idle animation",
   },
   pip: {
@@ -69,6 +89,19 @@ const pets = {
     dragDown: "pets/penguine/drag_down.gif",
     walkRight: "pets/penguine/walk_right.gif",
     walkLeft: "pets/penguine/walk_left.gif",
+    searching: "pets/penguine/searching.gif",
+    curious: "pets/penguine/curious.gif",
+    drowsy: "pets/penguine/drowsy.gif",
+    demoDigest: "pets/penguine/expressive_talking.gif",
+    demoReminder: "pets/penguine/dance.gif",
+    demoContinue: "pets/penguine/curious.gif",
+    demoScreen: "pets/penguine/searching.gif",
+    capVoice: "pets/penguine/expressive_talking.gif",
+    capAnswers: "pets/penguine/searching.gif",
+    capMemory: "pets/penguine/expressive_happy.gif",
+    capRhythm: "pets/penguine/drowsy.gif",
+    capTasks: "pets/penguine/dance.gif",
+    capHandoff: "pets/penguine/drag_up.gif",
     alt: "Pip idle animation",
   },
 };
@@ -102,11 +135,28 @@ const navLinks = document.querySelectorAll(".site-nav nav a");
 const nav = document.querySelector(".site-nav");
 const hero = document.querySelector(".hero");
 const windowsDownloadLink = document.querySelector("#windows-download-link");
+const windowsDownloadLabel = document.querySelector("#windows-download-label");
 const windowsDownloadVersion = document.querySelector("#windows-download-version");
 const releaseNote = document.querySelector("#release-note");
 const releaseList = document.querySelector("#release-list");
+const authModal = document.querySelector("#auth-modal");
+const authPet = document.querySelector("#auth-pet");
+const authMessage = document.querySelector("#auth-message");
+const authHelper = document.querySelector("#auth-helper");
+const googleSigninButton = document.querySelector("#google-signin-button");
+const authDownloadButton = document.querySelector("#auth-download-button");
+const authCloseButtons = document.querySelectorAll("[data-auth-close]");
+const downloadAuthStatus = document.querySelector("#download-auth-status");
 
 let activePetId = "rocky";
+let firebaseAuthState = null;
+let firebaseProvider = null;
+let firebaseAuthPromise = null;
+let signedInUser = null;
+let pendingDownloadAfterSignIn = false;
+
+const firebaseSdkVersion = "10.14.1";
+const firebaseRequiredFields = ["apiKey", "authDomain", "projectId", "appId"];
 
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
@@ -117,28 +167,28 @@ const demos = {
     label: "Morning digest",
     title: "A personalized start",
     copy: "Rocky gathers your reminders, preferred news, weather, unfinished work, and the first useful next step.",
-    emote: "talking",
+    emote: "demoDigest",
     tags: ["Weather", "Projects", "Reminders"],
   },
   reminder: {
     label: "Recurring task",
     title: "A habit Rocky can own",
     copy: "It turns a casual request into a visible recurring reminder with timing, tone, and cooldowns you can edit later.",
-    emote: "happy",
+    emote: "demoReminder",
     tags: ["Weekly", "Autosaved", "Editable"],
   },
   continue: {
     label: "Task continuity",
     title: "The thread comes back",
     copy: "Rocky remembers what you were working on, the likely next step, and whether Codex should inspect the project.",
-    emote: "thinking",
+    emote: "demoContinue",
     tags: ["Memory", "Projects", "Codex handoff"],
   },
   screen: {
     label: "Screen-aware help",
     title: "A nudge with restraint",
     copy: "When screen sharing is enabled, Rocky can notice stuck states and ask before stepping in.",
-    emote: "thinking",
+    emote: "demoScreen",
     tags: ["Opt-in", "Cooldowns", "Control"],
   },
 };
@@ -210,6 +260,31 @@ petButtons.forEach((button) => {
 
 commandButtons.forEach((button) => {
   button.addEventListener("click", () => setDemo(button.dataset.demo));
+});
+
+if (windowsDownloadLink) {
+  windowsDownloadLink.addEventListener("click", handleWindowsDownloadClick);
+}
+
+if (googleSigninButton) {
+  googleSigninButton.addEventListener("click", signInWithGoogle);
+}
+
+if (authDownloadButton) {
+  authDownloadButton.addEventListener("click", () => {
+    pendingDownloadAfterSignIn = false;
+    startWindowsDownload();
+  });
+}
+
+authCloseButtons.forEach((button) => {
+  button.addEventListener("click", closeAuthModal);
+});
+
+window.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && authModal && !authModal.hidden) {
+    closeAuthModal();
+  }
 });
 
 window.addEventListener("scroll", () => {
@@ -320,6 +395,189 @@ function isValidHttpUrl(value) {
   }
 }
 
+function getWindowsDownloadUrl() {
+  const syncedUrl = windowsDownloadLink?.dataset.downloadUrl;
+  return isValidHttpUrl(syncedUrl) ? syncedUrl : "";
+}
+
+function updateAuthStatus(message) {
+  if (downloadAuthStatus) {
+    downloadAuthStatus.textContent = message;
+  }
+}
+
+function isFirebaseConfigured() {
+  const config = window.ROCKY_FIREBASE_CONFIG;
+  if (!config || typeof config !== "object") return false;
+
+  return firebaseRequiredFields.every((field) => {
+    const value = String(config[field] || "").trim();
+    return value && !value.startsWith("PASTE_") && !value.includes("PASTE_PROJECT_ID");
+  });
+}
+
+function openAuthModal(message) {
+  if (!authModal) return;
+  const pet = pets[activePetId];
+
+  if (authPet && pet) {
+    authPet.src = pet.happy;
+    authPet.alt = `${pet.name} happy animation`;
+  }
+
+  if (message && authMessage) {
+    authMessage.textContent = message;
+  }
+
+  authModal.hidden = false;
+  document.body.classList.add("auth-open");
+  requestAnimationFrame(() => googleSigninButton?.focus());
+}
+
+function closeAuthModal() {
+  if (!authModal) return;
+  authModal.hidden = true;
+  document.body.classList.remove("auth-open");
+  pendingDownloadAfterSignIn = false;
+}
+
+function setAuthBusy(isBusy) {
+  if (googleSigninButton) {
+    googleSigninButton.disabled = isBusy;
+    googleSigninButton.textContent = isBusy ? "Opening Google..." : "Continue with Google";
+  }
+}
+
+function setSignedInUser(user) {
+  signedInUser = user || null;
+  const displayName = signedInUser?.displayName || signedInUser?.email || "Google account";
+
+  if (authDownloadButton) {
+    authDownloadButton.hidden = !signedInUser;
+  }
+
+  if (signedInUser) {
+    updateAuthStatus(`Signed in as ${displayName}. Download is ready.`);
+    if (authMessage) {
+      authMessage.textContent = `You are signed in as ${displayName}. Rocky is ready to download.`;
+    }
+    if (authHelper) {
+      authHelper.textContent = "You can start the installer download now.";
+    }
+    if (windowsDownloadLabel) {
+      windowsDownloadLabel.textContent = "Download for Windows";
+    }
+  } else {
+    updateAuthStatus("Google sign-in is required before the installer starts.");
+    if (authHelper) {
+      authHelper.textContent = "Your browser will open Google's secure sign-in window.";
+    }
+    if (windowsDownloadLabel) {
+      windowsDownloadLabel.textContent = "Sign in to download";
+    }
+  }
+}
+
+async function getFirebaseAuth() {
+  if (firebaseAuthPromise) return firebaseAuthPromise;
+
+  firebaseAuthPromise = (async () => {
+    if (!isFirebaseConfigured()) {
+      throw new Error("Firebase is not configured yet.");
+    }
+
+    const [{ initializeApp, getApps }, authModule] = await Promise.all([
+      import(`https://www.gstatic.com/firebasejs/${firebaseSdkVersion}/firebase-app.js`),
+      import(`https://www.gstatic.com/firebasejs/${firebaseSdkVersion}/firebase-auth.js`),
+    ]);
+
+    const app = getApps().length ? getApps()[0] : initializeApp(window.ROCKY_FIREBASE_CONFIG);
+    const auth = authModule.getAuth(app);
+    const provider = new authModule.GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: "select_account" });
+
+    authModule.onAuthStateChanged(auth, (user) => {
+      setSignedInUser(user);
+      if (user && pendingDownloadAfterSignIn) {
+        pendingDownloadAfterSignIn = false;
+        startWindowsDownload();
+      }
+    });
+
+    firebaseAuthState = { auth, authModule };
+    firebaseProvider = provider;
+    return firebaseAuthState;
+  })();
+
+  return firebaseAuthPromise;
+}
+
+async function signInWithGoogle() {
+  setAuthBusy(true);
+
+  try {
+    const { auth, authModule } = await getFirebaseAuth();
+    const result = await authModule.signInWithPopup(auth, firebaseProvider);
+    setSignedInUser(result.user);
+    if (pendingDownloadAfterSignIn) {
+      pendingDownloadAfterSignIn = false;
+      startWindowsDownload();
+    }
+  } catch (error) {
+    console.warn("Google sign-in failed.", error);
+
+    if (authMessage) {
+      authMessage.textContent = isFirebaseConfigured()
+        ? "Google sign-in could not complete. Check that popups are allowed and this domain is authorized in Firebase."
+        : "Firebase is not configured yet. Add your web app values in firebase-config.js, then enable Google sign-in in Firebase.";
+    }
+
+    if (authHelper) {
+      authHelper.textContent = "The download will stay locked until sign-in is working.";
+    }
+  } finally {
+    setAuthBusy(false);
+  }
+}
+
+function startWindowsDownload() {
+  const downloadUrl = getWindowsDownloadUrl();
+  if (!downloadUrl) {
+    openAuthModal("The latest Windows download URL is still loading. Please try again in a moment.");
+    return;
+  }
+
+  window.location.assign(downloadUrl);
+}
+
+async function handleWindowsDownloadClick(event) {
+  event.preventDefault();
+
+  if (signedInUser) {
+    startWindowsDownload();
+    return;
+  }
+
+  pendingDownloadAfterSignIn = true;
+  openAuthModal("Sign in with Google once, then Rocky will start downloading automatically.");
+
+  if (!isFirebaseConfigured()) {
+    if (authMessage) {
+      authMessage.textContent = "Firebase is not configured yet. Fill firebase-config.js with your Firebase web app values first.";
+    }
+    if (authHelper) {
+      authHelper.textContent = "After setup, this same button will open Google sign-in and then start the download.";
+    }
+    return;
+  }
+
+  try {
+    await getFirebaseAuth();
+  } catch (error) {
+    console.warn("Firebase auth is not ready.", error);
+  }
+}
+
 async function syncWindowsDownload() {
   if (!windowsDownloadLink) return;
 
@@ -333,7 +591,7 @@ async function syncWindowsDownload() {
     const release = await response.json();
     if (!release || !isValidHttpUrl(release.download_url)) return;
 
-    windowsDownloadLink.href = release.download_url;
+    windowsDownloadLink.dataset.downloadUrl = release.download_url;
     windowsDownloadLink.dataset.releaseVersion = release.version || "";
 
     if (windowsDownloadVersion && release.version) {
@@ -363,3 +621,6 @@ setPet(pets[requestedPet] ? requestedPet : "rocky", true);
 primeScrollMotion();
 primeNavState();
 syncWindowsDownload();
+if (isFirebaseConfigured()) {
+  getFirebaseAuth().catch((error) => console.warn("Firebase auth could not initialize.", error));
+}

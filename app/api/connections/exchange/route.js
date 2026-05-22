@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getRedis, hasRedisConfig } from "../../../../lib/redis";
-import { envReady, getConnectionCodeKey, isSupportedGoogleProvider } from "../../../../lib/oauth";
+import { getConnectionCodeKey, isSupportedProvider } from "../../../../lib/oauth";
 
 export async function POST(request) {
   let body = null;
@@ -14,7 +14,7 @@ export async function POST(request) {
   const provider = body?.provider;
   const code = body?.code;
 
-  if (!isSupportedGoogleProvider(provider)) {
+  if (!isSupportedProvider(provider)) {
     return NextResponse.json({ ok: false, error: "unsupported_provider" }, { status: 400 });
   }
 
@@ -22,7 +22,7 @@ export async function POST(request) {
     return NextResponse.json({ ok: false, error: "missing_code" }, { status: 400 });
   }
 
-  if (!envReady("CONNECTION_CODE_SECRET") || !hasRedisConfig()) {
+  if (!hasRedisConfig()) {
     return NextResponse.json({ ok: false, error: "broker_not_configured" }, { status: 503 });
   }
 
@@ -42,6 +42,7 @@ export async function POST(request) {
 
   return NextResponse.json({
     ok: true,
-    token: stored.token,
+    token: stored.connection,
+    connection: stored.connection,
   });
 }

@@ -66,7 +66,20 @@ export async function GET(request, { params }) {
     }
 
     return NextResponse.redirect(connectionRequest.redirectUrl);
-  } catch {
+  } catch (error) {
+    console.error("Composio connectedAccounts.link failed", {
+      provider,
+      authConfigEnv: providerConfig.authConfigEnv,
+      authConfigIdPrefix: providerConfig.authConfigId?.slice(0, 6),
+      authConfigIdSuffix: providerConfig.authConfigId?.slice(-4),
+      callbackUrl: callbackUrl.toString(),
+      errorName: error?.name,
+      errorMessage: error?.message,
+      causeName: error?.cause?.name,
+      causeMessage: error?.cause?.message,
+      status: error?.status || error?.cause?.status,
+    });
+
     await redis.del(getOAuthStateKey(state));
     return errorPage("Connection unavailable", "Rocky could not start this service connection. Please try again.", 502);
   }

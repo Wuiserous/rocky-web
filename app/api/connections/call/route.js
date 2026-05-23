@@ -4,6 +4,7 @@ import { getRockyProviderConfig } from "../../../../lib/rocky-connections";
 
 const MAX_RESPONSE_BYTES = 256000;
 const TOOL_LIST_LIMIT = 80;
+const SCHEMA_PROPERTY_LIMIT = 40;
 const GMAIL_FETCH_EMAILS_TOOL = "GMAIL_FETCH_EMAILS";
 const GMAIL_SUMMARY_LIMIT = 10;
 
@@ -34,6 +35,44 @@ function compactTool(tool) {
     name: tool.name,
     description: tool.description,
     toolkit: tool.toolkit?.slug || tool.toolkitSlug || tool.toolkit,
+    version: tool.version,
+    tags: Array.isArray(tool.tags) ? tool.tags : [],
+    scopes: Array.isArray(tool.scopes) ? tool.scopes : [],
+    input_schema: summarizeSchema(input),
+    output_schema: summarizeSchema(output),
+  };
+}
+
+function summarizeSchema(schema) {
+  if (!schema || typeof schema !== "object") {
+    return null;
+  }
+
+  const properties = schema.properties || schema.schema?.properties || schema.json_schema?.properties || {};
+  const required = Array.isArray(schema.required)
+    ? schema.required
+    : Array.isArray(schema.schema?.required)
+      ? schema.schema.required
+      : Array.isArray(schema.json_schema?.required)
+        ? schema.json_schema.required
+        : [];
+
+  return {
+    type: schema.type || schema.schema?.type || schema.json_schema?.type || "object",
+    required,
+    properties: Object.fromEntries(
+      Object.entries(properties)
+        .slice(0, SCHEMA_PROPERTY_LIMIT)
+        .map(([key, value]) => [
+          key,
+          {
+            type: value?.type || (Array.isArray(value?.anyOf) ? "anyOf" : undefined),
+            description: value?.description || value?.title || "",
+            enum: Array.isArray(value?.enum) ? value.enum.slice(0, 20) : undefined,
+            items: value?.items?.type ? { type: value.items.type } : undefined,
+          },
+        ])
+    ),
   };
 }
 
@@ -180,6 +219,56 @@ function normalizeGmailMessages(result, fallbackLimit) {
   }));
 }
 
+function sanitizedError(error) {
+  return {
+    name: error?.name || null,
+    message: error?.message || String(error || "Unknown error"),
+    cause_name: error?.cause?.name || null,
+    cause_message: error?.cause?.message || null,
+    status: error?.status || error?.cause?.status || null,
+  };
+}
+
+function toolExecutionSucceeded(result) {
+  if (!result || typeof result !== "object") {
+    return false;
+  }
+
+  if (result.error) {
+    return false;
+  }
+
+  const data = result.data;
+  if (data && typeof data === "object") {
+    if (data.successful === false || data.success === false || data.ok === false) {
+      return false;
+    }
+    if (data.error || data.errors) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+async function createProviderSession(composio, providerConfig, entityId, connectedAccountId) {
+  const sessionConfig = {
+    toolkits: [providerConfig.toolkit],
+    authConfigs: {
+      [providerConfig.toolkit]: providerConfig.authConfigId,
+    },
+    manageConnections: false,
+  };
+
+  if (connectedAccountId) {
+    sessionConfig.connectedAccounts = {
+      [providerConfig.toolkit]: connectedAccountId,
+    };
+  }
+
+  return composio.create(entityId, sessionConfig);
+}
+
 async function executeTool(composio, entityId, connectedAccountId, toolSlug, args) {
   return composio.tools.execute(toolSlug, {
     userId: entityId,
@@ -251,7 +340,7 @@ export async function POST(request) {
           provider: providerConfig.id,
           search_query: search,
           session_id: session.sessionId,
-          assistive_prompt: session.experimental?.assistivePrompt || null,
+          assistive_prompt: session?.experimental?.assistivePrompt || null,
           connection_statuses: searchResult?.toolkitConnectionStatuses || [],
           next_steps_guidance: searchResult?.nextStepsGuidance || [],
           search_error: searchResult?.error || null,
@@ -279,7 +368,7 @@ export async function POST(request) {
         provider: providerConfig.id,
         search_query: search,
         session_id: session.sessionId,
-        assistive_prompt: session.experimental?.assistivePrompt || null,
+        assistive_prompt: session?.experimental?.assistivePrompt || null,
         connection_statuses: [],
         next_steps_guidance: [],
         results: [],
@@ -292,20 +381,29 @@ export async function POST(request) {
         return NextResponse.json({ ok: false, error: "missing_tool_slug" }, { status: 400 });
       }
 
-      const result = await executeTool(
-        composio,
-        entityId,
-        connectedAccountId,
-        operation.tool_slug,
-        operation.arguments || {}
-      );
+      const session = await createProviderSession(composio, providerConfig, entityId, connectedAccountId);
+      const searchResult = await session.search({
+        query: operation.tool_slug,
+        toolkits: [providerConfig.toolkit],
+      });
+      const schema = searchResult?.toolSchemas?.[operation.tool_slug] || null;
+      const tool = schema
+        ? {
+            slug: operation.tool_slug,
+            name: schema.name || operation.tool_slug,
+            description: schema.description || "",
+            toolkit: providerConfig.toolkit,
+            inputParameters: schema.inputSchema || schema.inputParameters || schema.input_parameters || schema.parameters || null,
+            outputParameters: schema.outputSchema || schema.outputParameters || schema.output_parameters || null,
+          }
+        : null;
 
       return cappedJson({
         ok: true,
         mode: "composio_tool_router",
         provider: providerConfig.id,
         session_id: session.sessionId,
-        assistive_prompt: session.experimental?.assistivePrompt || null,
+        assistive_prompt: session?.experimental?.assistivePrompt || null,
         connection_statuses: searchResult?.toolkitConnectionStatuses || [],
         next_steps_guidance: searchResult?.nextStepsGuidance || [],
         results: searchResult?.results || [],
@@ -318,17 +416,36 @@ export async function POST(request) {
         return NextResponse.json({ ok: false, error: "missing_tool_slug" }, { status: 400 });
       }
 
-      const session = await createProviderSession(composio, providerConfig, entityId, connectedAccountId);
-      const result = await session.execute(operation.tool_slug, operation.arguments || {});
-      const successful = result?.successful !== false && !result?.error;
+      let result = null;
+      let session = null;
+      let executionMode = "direct_tools_execute";
+      let directError = null;
+
+      try {
+        result = await executeTool(
+          composio,
+          entityId,
+          connectedAccountId,
+          operation.tool_slug,
+          operation.arguments || {}
+        );
+      } catch (error) {
+        directError = sanitizedError(error);
+        executionMode = "tool_router_session";
+        session = await createProviderSession(composio, providerConfig, entityId, connectedAccountId);
+        result = await session.execute(operation.tool_slug, operation.arguments || {});
+      }
+      const successful = toolExecutionSucceeded(result);
 
       return cappedJson({
         ok: successful,
         mode: "composio_tool_router",
+        execution_mode: executionMode,
         provider: providerConfig.id,
         tool_slug: operation.tool_slug,
-        session_id: session.sessionId,
-        assistive_prompt: session.experimental?.assistivePrompt || null,
+        session_id: session?.sessionId || null,
+        assistive_prompt: session?.experimental?.assistivePrompt || null,
+        direct_error: directError,
         connection_statuses: [],
         next_steps_guidance: [],
         results: [],

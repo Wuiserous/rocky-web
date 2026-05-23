@@ -229,6 +229,11 @@ function sanitizedError(error) {
   };
 }
 
+function containsRateLimit(value) {
+  const text = JSON.stringify(value || {}, null, 0);
+  return /\b(429|RESOURCE_EXHAUSTED|rate\s*limit|quota|too many requests)\b/i.test(text);
+}
+
 function toolExecutionSucceeded(result) {
   if (!result || typeof result !== "object") {
     return false;
@@ -431,6 +436,28 @@ export async function POST(request) {
         );
       } catch (error) {
         directError = sanitizedError(error);
+        if (containsRateLimit(directError)) {
+          return cappedJson({
+            ok: false,
+            mode: "composio_tool_router",
+            execution_mode: executionMode,
+            provider: providerConfig.id,
+            tool_slug: operation.tool_slug,
+            session_id: null,
+            assistive_prompt: null,
+            direct_error: directError,
+            error: "temporary_rate_limit",
+            retry_after_seconds: 60,
+            connection_statuses: [],
+            next_steps_guidance: ["Wait about 60 seconds before retrying this write."],
+            results: [],
+            tools: [],
+            result: {
+              error: "temporary_rate_limit",
+              message: "The provider returned a temporary 429/RESOURCE_EXHAUSTED rate limit.",
+            },
+          }, { status: 429 });
+        }
         executionMode = "tool_router_session";
         session = await createProviderSession(composio, providerConfig, entityId, connectedAccountId);
         result = await session.execute(operation.tool_slug, operation.arguments || {});

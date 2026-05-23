@@ -16,6 +16,7 @@ export async function GET(request, { params }) {
   const requestUrl = new URL(request.url);
   const redirectUri = requestUrl.searchParams.get("redirect_uri");
   const state = requestUrl.searchParams.get("state");
+  const debug = requestUrl.searchParams.get("debug") === "1";
 
   if (!providerConfig) {
     return errorPage("Unsupported provider", "Rocky cannot connect this service yet.", 404);
@@ -114,6 +115,22 @@ export async function GET(request, { params }) {
     });
 
     await redis.del(getOAuthStateKey(state));
+    if (debug) {
+      const diagnostic = {
+        provider,
+        authConfigEnv: providerConfig.authConfigEnv,
+        authConfigIdPrefix: providerConfig.authConfigId?.slice(0, 6),
+        authConfigIdSuffix: providerConfig.authConfigId?.slice(-4),
+        callbackUrl: callbackUrl.toString(),
+        errorName: error?.name,
+        errorMessage: error?.message,
+        causeName: error?.cause?.name,
+        causeMessage: error?.cause?.message,
+        status: error?.status || error?.cause?.status,
+      };
+      return NextResponse.json({ ok: false, error: "connect_start_failed", diagnostic }, { status: 502 });
+    }
+
     return errorPage("Connection unavailable", "Rocky could not start this service connection. Please try again.", 502);
   }
 }

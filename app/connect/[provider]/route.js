@@ -36,7 +36,7 @@ export async function GET(request, { params }) {
     return errorPage("Connection unavailable", "Rocky's connection service is not configured yet.", 503);
   }
 
-  const rockyEntityId = `rocky_${crypto.randomUUID()}`;
+  const rockyEntityId = `rocky-${crypto.randomUUID()}`;
   const redis = getRedis();
   const callbackUrl = new URL(COMPOSIO_CALLBACK_URL);
   callbackUrl.searchParams.set("state", state);
@@ -53,16 +53,49 @@ export async function GET(request, { params }) {
   );
 
   try {
-    const connectionRequest = await getComposio().connectedAccounts.link(
-      rockyEntityId,
-      providerConfig.authConfigId,
-      {
-        callbackUrl: callbackUrl.toString(),
+    const composio = getComposio();
+    let connectionRequest = null;
+    let linkError = null;
+
+    try {
+      connectionRequest = await composio.connectedAccounts.link(
+        rockyEntityId,
+        providerConfig.authConfigId,
+        {
+          callbackUrl: callbackUrl.toString(),
+          allowMultiple: true,
+        }
+      );
+    } catch (error) {
+      linkError = error;
+      if (typeof composio.connectedAccounts.initiate === "function") {
+        connectionRequest = await composio.connectedAccounts.initiate(
+          rockyEntityId,
+          providerConfig.authConfigId,
+          {
+            callbackUrl: callbackUrl.toString(),
+            allowMultiple: true,
+          }
+        );
+      } else {
+        throw error;
       }
-    );
+    }
 
     if (!connectionRequest.redirectUrl) {
       throw new Error("Composio did not return a connect URL.");
+    }
+
+    if (linkError) {
+      console.warn("Composio connectedAccounts.link failed; initiate fallback succeeded", {
+        provider,
+        authConfigEnv: providerConfig.authConfigEnv,
+        errorName: linkError?.name,
+        errorMessage: linkError?.message,
+        causeName: linkError?.cause?.name,
+        causeMessage: linkError?.cause?.message,
+        status: linkError?.status || linkError?.cause?.status,
+      });
     }
 
     return NextResponse.redirect(connectionRequest.redirectUrl);
